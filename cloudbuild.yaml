@@ -1,21 +1,21 @@
 steps:
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/flask-app-456705/flask-app', '.']
+    args: ['build', '-t', 'gcr.io/flask-app-456705/flaskapp', '.']
 
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/flask-app-456705/flask-app']
+    args: ['push', 'gcr.io/flask-app-456705/flaskapp']
 
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args: [
-      'run', 'deploy', 'flask-app',
-      '--image', 'gcr.io/flask-app-456705/flask-app',
+      'run', 'deploy', 'flaskapp',
+      '--image', 'gcr.io/flask-app-456705/flaskapp',
       '--platform', 'managed',
       '--region', 'us-central1',
       '--allow-unauthenticated',
       '--port', '8080'
     ]
 images:
-  - 'gcr.io/flask-app-456705/flask-app'
+  - 'gcr.io/flask-app-456705/flaskapp'
 options:
   logging: CLOUD_LOGGING_ONLY
