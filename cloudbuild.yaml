@@ -13,9 +13,16 @@ steps:
       '--platform', 'managed',
       '--region', 'us-central1',
       '--allow-unauthenticated',
-      '--port', '8080'
+      '--port', '8080',
+      '--set-secrets', 'GITHUB_TOKEN=github-token:latest'
     ]
+
 images:
   - 'gcr.io/flask-app-456705/flaskapp'
+
+secrets:
+  - secretEnv:
+      GITHUB_TOKEN: projects/flask-app-456705/secrets/github-token/versions/latest
+
 options:
   logging: CLOUD_LOGGING_ONLY
