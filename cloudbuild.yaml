@@ -6,25 +6,16 @@ steps:
     args: ['push', 'gcr.io/flask-app-456705/flaskapp']
 
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: bash
-    secretEnv: ['GITHUB_TOKEN']
-    args:
-      - '-c'
-      - |
-        gcloud run deploy flaskapp \
-          --image gcr.io/flask-app-456705/flaskapp \
-          --platform managed \
-          --region us-central1 \
-          --allow-unauthenticated \
-          --port 8080 \
-          --set-env-vars GITHUB_TOKEN=$GITHUB_TOKEN
-
+    entrypoint: gcloud
+    args: [
+      'run', 'deploy', 'flaskapp',
+      '--image', 'gcr.io/flask-app-456705/flaskapp',
+      '--platform', 'managed',
+      '--region', 'us-central1',
+      '--allow-unauthenticated',
+      '--port', '8080'
+    ]
 images:
   - 'gcr.io/flask-app-456705/flaskapp'
-
-secrets:
-  - secretEnv:
-      GITHUB_TOKEN: projects/flask-app-456705/secrets/github-token/versions/latest
-
 options:
   logging: CLOUD_LOGGING_ONLY
