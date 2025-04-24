@@ -1,6 +1,5 @@
-Flask
-github3.py
-pandas
+Flask>=2.3.0
 flask-cors
-requests-async
-flask[async]
+pandas
+requests
+github3.py
