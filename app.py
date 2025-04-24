@@ -98,6 +98,7 @@ def github():
         search_issues = requests.get(query_url, headers=headers, params=params)
         # Convert the data obtained from GitHub API to JSON format
         search_issues = search_issues.json()
+        print("Search Issues: ", str(search_issues))
         issues_items = []
         try:
             # Extract "items" from search issues
@@ -225,6 +226,9 @@ def github():
                                        json=closed_at_body,
                                        headers={'content-type': 'application/json'})
     
+    print("Created Image URLs: {created_at_response}")
+    print("Closed Image URLs: {closed_at_response}")
+    
     '''
     Create the final response that consists of:
         1. GitHub repository data obtained from GitHub API
@@ -242,6 +246,9 @@ def github():
             **closed_at_response.json(),
         },
     }
+    
+    print("GitHub Repository Data:", jsonify(json_response))
+    
     # Return the response back to client (React app)
     return jsonify(json_response)
 
