@@ -25,11 +25,6 @@ from datetime import date
 import pandas as pd
 import requests
 
-from dotenv import load_dotenv
-
-# Load .env file
-load_dotenv()
-
 # Initilize flask app
 app = Flask(__name__)
 # Handles CORS (cross-origin resource sharing)
@@ -61,11 +56,8 @@ def github():
     # Extract the choosen repositories from the request
     repo_name = body['repository']
     # Add your own GitHub Token to run it local
-    token = os.getenv('GITHUB_TOKEN')
-    if not token or token == 'YOUR_GITHUB_TOKEN':
-        raise EnvironmentError("GITHUB_TOKEN is missing. Set it in Secret Manager or .env.")
-    # token = os.environ.get(
-    #     'GITHUB_TOKEN', 'YOUR_GITHUB_TOKEN')
+    token = os.environ.get(
+        'GITHUB_TOKEN', 'YOUR_GITHUB_TOKEN')
     GITHUB_URL = f"https://api.github.com/"
     headers = {
         "Authorization": f'token {token}'
@@ -91,7 +83,7 @@ def github():
         # By default GitHub API returns only 30 results per page
         # The maximum number of results per page is 100
         # For more info, visit https://docs.github.com/en/rest/reference/repos 
-        per_page = 'per_page=100'
+        per_page = 'per_page=10'
         # Search query will create a query to fetch data for a given repository in a given time range
         search_query = types + ' ' + repo + ' ' + ranges
 
@@ -101,8 +93,9 @@ def github():
         search_issues = requests.get(query_url, headers=headers, params=params)
         # Convert the data obtained from GitHub API to JSON format
         search_issues = search_issues.json()
-        print("Search Issues: ", str(search_issues))
         issues_items = []
+        print("Fetching issues for repository:", repo_name)
+        print("search_issues:", search_issues)
         try:
             # Extract "items" from search issues
             issues_items = search_issues.get("items")
@@ -120,10 +113,7 @@ def github():
             # Get issue number
             data['issue_number'] = current_issue["number"]
             # Get created date of issue
-            if current_issue["created_at"] == None:
-                data['created_at'] = current_issue["created_at"]
-            else:
-                data['created_at'] = current_issue["created_at"]
+            data['created_at'] = current_issue["created_at"][0:10]
             if current_issue["closed_at"] == None:
                 data['closed_at'] = current_issue["closed_at"]
             else:
@@ -153,14 +143,10 @@ def github():
     Format the data by grouping the data by month
     ''' 
     created_at = df['created_at']
-    month_issue_created = pd.to_datetime(created_at, errors='coerce')
-    month_issue_created.index = month_issue_created.dt.to_period('M')
+    month_issue_created = pd.to_datetime(
+        pd.Series(created_at), format='%Y-%m-%d')
+    month_issue_created.index = month_issue_created.dt.to_period('m')
     month_issue_created = month_issue_created.groupby(level=0).size()
-
-    # month_issue_created = pd.to_datetime(
-    #     pd.Series(created_at), format='%Y-%m-%d')
-    # month_issue_created.index = month_issue_created.dt.to_period('m')
-    # month_issue_created = month_issue_created.groupby(level=0).size()
     month_issue_created = month_issue_created.reindex(pd.period_range(
         month_issue_created.index.min(), month_issue_created.index.max(), freq='m'), fill_value=0)
     month_issue_created_dict = month_issue_created.to_dict()
@@ -175,14 +161,10 @@ def github():
     ''' 
     
     closed_at = df['closed_at'].sort_values(ascending=True)
-    month_issue_closed = pd.to_datetime(closed_at, errors='coerce')
-    month_issue_closed.index = month_issue_closed.dt.to_period('M')
+    month_issue_closed = pd.to_datetime(
+        pd.Series(closed_at), format='%Y-%m-%d')
+    month_issue_closed.index = month_issue_closed.dt.to_period('m')
     month_issue_closed = month_issue_closed.groupby(level=0).size()
-
-    # month_issue_closed = pd.to_datetime(
-    #     pd.Series(closed_at), format='%Y-%m-%d')
-    # month_issue_closed.index = month_issue_closed.dt.to_period('m')
-    # month_issue_closed = month_issue_closed.groupby(level=0).size()
     month_issue_closed = month_issue_closed.reindex(pd.period_range(
         month_issue_closed.index.min(), month_issue_closed.index.max(), freq='m'), fill_value=0)
     month_issue_closed_dict = month_issue_closed.to_dict()
@@ -229,9 +211,6 @@ def github():
                                        json=closed_at_body,
                                        headers={'content-type': 'application/json'})
     
-    print("Created Image URLs: {created_at_response}")
-    print("Closed Image URLs: {closed_at_response}")
-    
     '''
     Create the final response that consists of:
         1. GitHub repository data obtained from GitHub API
@@ -249,13 +228,10 @@ def github():
             **closed_at_response.json(),
         },
     }
-    
-    print("GitHub Repository Data:", jsonify(json_response))
-    
     # Return the response back to client (React app)
     return jsonify(json_response)
 
 
 # Run flask app server on port 5000
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8080)
+    app.run(debug=True, host='localhost', port=8080)

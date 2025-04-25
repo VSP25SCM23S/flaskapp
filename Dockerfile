@@ -1,24 +1,20 @@
-# Use official slim Python image
-FROM python:3.10-slim
+FROM python:3.8
 
-# Set environment variables
-ENV PORT=8080
-ENV HOSTDIR=0.0.0.0
+ENV PORT 5000
+ENV HOSTDIR 0.0.0.0
 
-# Set working directory
+EXPOSE 5000
+
+RUN apt-get update -y && \
+    apt-get install -y python3-pip
+
+COPY ./requirements.txt /app/requirements.txt
+
 WORKDIR /app
 
-# Copy dependencies first (for Docker layer caching)
-COPY requirements.txt .
+RUN pip install -r requirements.txt
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+COPY . /app
 
-# Copy the rest of the app
-COPY . .
 
-# Expose the port Flask will use (Cloud Run uses 8080)
-EXPOSE 8080
-
-# Command to run the application
-CMD ["python", "app.py"]
+ENTRYPOINT ["python", "app.py"]
