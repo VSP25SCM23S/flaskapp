@@ -25,6 +25,11 @@ from datetime import date
 import pandas as pd
 import requests
 
+from dotenv import load_dotenv
+
+# Load .env file
+load_dotenv()
+
 # Initilize flask app
 app = Flask(__name__)
 # Handles CORS (cross-origin resource sharing)
@@ -45,10 +50,6 @@ def build_actual_response(response):
     response.headers.set("Access-Control-Allow-Methods",
                          "PUT, GET, POST, DELETE, OPTIONS")
     return response
-
-@app.route('/api/github', methods=['OPTIONS'])
-def github_options():
-    return build_preflight_response()
 
 '''
 API route path is  "/api/forecast"
@@ -252,8 +253,7 @@ def github():
     print("GitHub Repository Data:", jsonify(json_response))
     
     # Return the response back to client (React app)
-    return build_actual_response(jsonify(json_response))
-    # return jsonify(json_response)
+    return jsonify(json_response)
 
 
 # Run flask app server on port 5000
