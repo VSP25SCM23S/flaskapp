@@ -14,7 +14,7 @@ steps:
       '--region', 'us-central1',
       '--allow-unauthenticated',
       '--port', '8080',
-      '--set-secrets GITHUB_TOKEN=github-token:latest'
+      '--set-secrets', 'GITHUB_TOKEN=github-token:latest'
     ]
 images:
   - 'gcr.io/flask-app-456705/flaskapp'
