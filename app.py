@@ -63,7 +63,6 @@ def github():
 
         repo_name = body['repository']
         token = os.environ.get('GITHUB_TOKEN', None)
-        print('Token:', token)
         if not token or token == 'YOUR_GITHUB_TOKEN':
             return jsonify({"error": "GitHub token not found or invalid"}), 500
 
@@ -124,7 +123,7 @@ def github():
         closed = [[str(month), count] for month, count in closed_monthly.items()]
 
         # Call LSTM Forecast Service
-        LSTM_API_URL = "https://lstm-610711643871.us-central1.run.app/api/forecast"
+        LSTM_API_URL = "https://lstm-final-443901594551.us-central1.run.app/api/forecast"
         try:
             created_at_response = requests.post(LSTM_API_URL, json={
                 "issues": issues_response, "type": "created_at", "repo": repo_name.split("/")[1]
@@ -148,6 +147,43 @@ def github():
 
     except Exception as e:
         return jsonify({"error": f"Unexpected server error: {str(e)}"}), 500
+    
+@app.route('/api/github/details', methods=['POST'])
+def github_details():
+    body = request.get_json()
+    token = os.environ.get('GITHUB_TOKEN', 'YOUR_GITHUB_TOKEN')
+    headers = {
+        "Authorization": f'token {token}'
+    }
+    GITHUB_URL = "https://api.github.com/"
+    response_list = []
+
+    for repo in body:
+        repo_name = repo['name']
+        repository_url = GITHUB_URL + "repos/" + repo_name
+        issues_url = GITHUB_URL + f"search/issues?q=repo:{repo_name}+type:issue"
+        closed_issues_url = GITHUB_URL + f"search/issues?q=repo:{repo_name}+type:issue+state:closed"
+
+        try:
+            repo_data = requests.get(repository_url, headers=headers).json()
+            issues_data = requests.get(issues_url, headers=headers).json()
+            closed_issues_data = requests.get(closed_issues_url, headers=headers).json()
+
+            repo_response = {
+                "name": repo_name,
+                "stars": repo_data.get("stargazers_count", 0),
+                "forks": repo_data.get("forks_count", 0),
+                "total_issues": issues_data.get("total_count", 0),
+                "closed_issues": closed_issues_data.get("total_count", 0),
+            }
+
+            response_list.append(repo_response)
+
+        except Exception as e:
+            print(f"Error processing repo {repo_name}: {e}")
+
+    return jsonify(response_list)
+
 
 
 # Run flask app server on port 5000
